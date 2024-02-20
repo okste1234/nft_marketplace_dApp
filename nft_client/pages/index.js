@@ -1,13 +1,53 @@
 import { useRef, useState, useEffect } from 'react';
+import Image from 'next/image';
+
+import { useTheme } from 'next-themes';
+import { makeId } from '../utils/makeId';
 import { Banner, CreatorCard } from '../components';
+
 import images from '../assets';
 
 const Home = () => {
   const parentRef = useRef(null);
   const scrollRef = useRef(null);
 
+  const { theme } = useTheme();
+
+  const [hideButtons, setHideButtons] = useState(false);
+
+  const handleScroll = (direction) => {
+    const { current } = scrollRef;
+
+    const scrollAmount = window.innerWidth > 1800 ? 270 : 210;
+
+    if (direction === 'left') {
+      current.scrollLeft -= scrollAmount;
+    } else {
+      current.scrollLeft += scrollAmount;
+    }
+  };
+
+  // check if scrollRef container is overfilling its parentRef container
+  const isScrollable = () => {
+    const { current } = scrollRef;
+    const { current: parent } = parentRef;
+
+    if (current?.scrollWidth >= parent?.offsetWidth) return setHideButtons(false);
+    return setHideButtons(true);
+  };
+
+  // if window is resized
+  useEffect(() => {
+    isScrollable();
+    window.addEventListener('resize', isScrollable);
+
+    return () => {
+      window.removeEventListener('resize', isScrollable);
+    };
+  });
+
   return (
-    <div div className="flex justify-center sm:px-4 p-12">
+    <div className="flex justify-center sm:px-4 p-12">
       <div className="w-full minmd:w-4/5">
         <Banner
           name={(<>Discover, collect, and sell <br /> extraordinary NFTs</>)}
@@ -34,7 +74,7 @@ const Home = () => {
                   key={`creator-${i}`}
                   rank={i}
                   creatorImage={images[`creator${i}`]}
-                  creatorName={`0x${makeid(3)}...${makeid(4)}`}
+                  creatorAddress={`0x${makeId(3)}...${makeId(4)}`}
                   creatorEths={10 - i * 0.534}
                 />
               ))}
